@@ -4,7 +4,6 @@ import { Database, Download, Play, RefreshCw, AlertCircle } from 'lucide-react';
 import OutputDisplay from '../components/OutputDisplay';
 import Tooltip from '../components/Tooltip';
 import { generateMockData } from '../services/geminiService';
-import { MockDataRequest } from '../types';
 
 const MockDataGen: React.FC = () => {
   const [topic, setTopic] = useState('');
@@ -23,8 +22,8 @@ const MockDataGen: React.FC = () => {
     try {
       const data = await generateMockData({ topic, format, count, complexity });
       setResult(data);
-    } catch (err) {
-      setError("Failed to generate data. Please check your API key and try again.");
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -121,6 +120,13 @@ const MockDataGen: React.FC = () => {
               className="w-full h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
+
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-500 text-sm">
+                <AlertCircle className="shrink-0" size={18} />
+                <p>{error}</p>
+            </div>
+          )}
 
           <button
             onClick={handleGenerate}

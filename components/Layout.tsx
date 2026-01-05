@@ -1,17 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap, ShieldCheck, ShieldAlert } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isApiConnected, setIsApiConnected] = useState<boolean | null>(null);
 
-  // Initialize theme
+  // Initialize theme and check API
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
     setIsDarkMode(isDark);
+
+    // Subtle check for API Key availability
+    const hasKey = !!(
+      (typeof process !== 'undefined' && process.env?.API_KEY) || 
+      (window as any).API_KEY || 
+      (window as any).VITE_API_KEY
+    );
+    setIsApiConnected(hasKey);
   }, []);
 
   const toggleTheme = () => {
@@ -77,12 +86,18 @@ const Layout: React.FC = () => {
           ))}
         </nav>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-2">
+           <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
+             isApiConnected ? 'text-green-500 bg-green-500/5 border-green-500/10' : 'text-red-500 bg-red-500/5 border-red-500/10'
+           }`}>
+              {isApiConnected ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+              {isApiConnected ? 'API Connected' : 'API Offline'}
+           </div>
            <button 
              onClick={toggleTheme}
              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-dark-700 border border-dark-600 text-slate-600 dark:text-slate-400 hover:text-noop-500 transition-all group"
            >
-             <span className="text-sm font-medium">{isDarkMode ? 'Dark Mode' : 'Light Mode'}</span>
+             <span className="text-sm font-medium">{isDarkMode ? 'Dark' : 'Light'}</span>
              {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
            </button>
         </div>
@@ -99,9 +114,6 @@ const Layout: React.FC = () => {
             </Link>
          </div>
          <div className="flex items-center gap-4">
-            <button onClick={toggleTheme} className="text-slate-500">
-               {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-500 dark:text-slate-300">
                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
