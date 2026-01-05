@@ -12,9 +12,16 @@ const Layout: React.FC = () => {
 
   useEffect(() => {
     const checkApi = () => {
-      // Check the shimmed process.env.API_KEY
-      const hasKey = !!process.env.API_KEY;
-      setIsApiConnected(hasKey);
+      // Check every possible location dynamically
+      // This matches the logic in geminiService.ts
+      const key = (process?.env?.API_KEY) || 
+                  ((process?.env as any)?.VITE_API_KEY) || 
+                  ((window as any).API_KEY) || 
+                  ((window as any).VITE_API_KEY) ||
+                  // @ts-ignore
+                  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY);
+      
+      setIsApiConnected(!!key);
     };
 
     checkApi();
@@ -111,7 +118,7 @@ const Layout: React.FC = () => {
                     </a>
                   </div>
                 ) : (
-                  <p className="text-green-600">Successfully connected to Gemini AI. Ready to automate.</p>
+                  <p className="text-green-600">Connected to Gemini. Ready to automate.</p>
                 )}
              </div>
            )}

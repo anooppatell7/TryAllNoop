@@ -2,18 +2,43 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MockDataRequest } from "../types";
 
+/**
+ * Highly resilient API Key retrieval.
+ * Checks Vite, Process, and Window globals to ensure Vercel deployments
+ * can always find the key regardless of prefixing.
+ */
+const getActiveKey = (): string | undefined => {
+  try {
+    // 1. Check standard process.env (Vercel/Node fallback)
+    const procKey = process?.env?.API_KEY || (process?.env as any)?.VITE_API_KEY;
+    if (procKey) return procKey;
+
+    // 2. Check Vite-specific meta environment
+    // @ts-ignore
+    const viteKey = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY;
+    if (viteKey) return viteKey;
+
+    // 3. Check window globals (injected by index.tsx shim)
+    const winKey = (window as any).API_KEY || (window as any).VITE_API_KEY;
+    if (winKey) return winKey;
+
+    return undefined;
+  } catch (e) {
+    return undefined;
+  }
+};
+
 const getClient = () => {
-  // Exclusively use process.env.API_KEY as per guidelines. 
-  // The shim in index.tsx handles mapping VITE_API_KEY to this variable.
-  const apiKey = process.env.API_KEY;
+  const apiKey = getActiveKey();
   if (!apiKey) return null;
+  // Initialize SDK with the found key
   return new GoogleGenAI({ apiKey });
 };
 
 const ensureClient = () => {
   const client = getClient();
   if (!client) {
-    throw new Error("API_KEY not found. Please ensure VITE_API_KEY or API_KEY is set in your Vercel environment variables.");
+    throw new Error("API_KEY not found. Please ensure VITE_API_KEY is set in Vercel Settings > Environment Variables and that you have Redeployed.");
   }
   return client;
 };
