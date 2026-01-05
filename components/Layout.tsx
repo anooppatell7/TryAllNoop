@@ -1,21 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Github, Twitter, Sun, Moon, BookOpen, AlertTriangle } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isApiKeyMissing, setIsApiKeyMissing] = useState(false);
-
-  // Check for API Key presence
-  useEffect(() => {
-    const key = typeof process !== 'undefined' ? process.env.API_KEY : (window as any).VITE_API_KEY;
-    if (!key) {
-      setIsApiKeyMissing(true);
-    }
-  }, []);
 
   // Initialize theme
   useEffect(() => {
@@ -44,7 +35,6 @@ const Layout: React.FC = () => {
     { label: 'Commit Message', path: '/commit-msg', icon: <GitCommit size={20} /> },
     { label: 'SQL to NoSQL', path: '/sql-nosql', icon: <DatabaseZap size={20} /> },
     { label: 'OG Image Gen', path: '/og-image', icon: <Image size={20} /> },
-    { label: 'GitHub Pusher', path: '/github-push', icon: <Github size={20} /> },
     { label: 'Cron Traveler', path: '/cron', icon: <Clock size={20} /> },
     { label: 'JSON Type-Caster', path: '/json-types', icon: <FileJson size={20} /> },
     { label: 'Readme Architect', path: '/readme', icon: <FileText size={20} /> },
@@ -57,29 +47,8 @@ const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-dark-900 text-slate-800 dark:text-slate-200 font-sans selection:bg-noop-500 selection:text-white transition-colors duration-300">
-      {/* API Warning Banner */}
-      {isApiKeyMissing && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-amber-950 px-4 py-2 text-center text-xs font-bold flex items-center justify-center gap-2 shadow-lg animate-pulse">
-          <AlertTriangle size={14} />
-          <span>Configuration Required: Please set your API_KEY in Vercel environment variables to enable AI features.</span>
-          <Link 
-            to="/docs" 
-            onClick={(e) => {
-              // Smooth scroll to setup section if already on docs page
-              if (location.pathname === '/docs') {
-                e.preventDefault();
-                document.getElementById('setup')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className="underline hover:opacity-80"
-          >
-            Get API Key
-          </Link>
-        </div>
-      )}
-
       {/* Sidebar Desktop */}
-      <aside className={`hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20 transition-all ${isApiKeyMissing ? 'pt-10' : ''}`}>
+      <aside className="hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20">
         <header className="p-6 flex items-center gap-3 border-b border-dark-700">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-noop-500/20 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
@@ -124,7 +93,7 @@ const Layout: React.FC = () => {
       </aside>
 
       {/* Mobile Header */}
-      <header className={`md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors ${isApiKeyMissing ? 'mt-8' : ''}`}>
+      <header className="md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors">
          <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
@@ -139,7 +108,7 @@ const Layout: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className={`flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto min-h-screen ${isApiKeyMissing ? 'pt-24 md:pt-16' : 'pt-20 md:pt-8'}`}>
+      <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto min-h-screen pt-20 md:pt-8">
         <article className="max-w-5xl mx-auto">
             <Outlet />
         </article>

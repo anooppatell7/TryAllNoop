@@ -6,7 +6,6 @@ const getApiKey = () => {
   if (typeof process !== 'undefined' && process.env.API_KEY) {
     return process.env.API_KEY;
   }
-  // Fallback for different environments
   return (window as any).API_KEY || (window as any).VITE_API_KEY;
 };
 
@@ -19,7 +18,8 @@ const getClient = () => {
 const ensureClient = () => {
   const client = getClient();
   if (!client) {
-    throw new Error("Missing API Key. Please add 'API_KEY' to your environment variables in Vercel Settings > Environment Variables, then redeploy.");
+    // Generic error for production users
+    throw new Error("Service connection unavailable. Please contact the administrator.");
   }
   return client;
 };

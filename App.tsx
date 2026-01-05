@@ -13,7 +13,6 @@ import CommitMsgGen from './pages/CommitMsgGen';
 import SqlToNoSql from './pages/SqlToNoSql';
 import OgImageGen from './pages/OgImageGen';
 import Docs from './pages/Docs';
-import GithubOnboarding from './pages/GithubOnboarding';
 
 const App: React.FC = () => {
   return (
@@ -30,7 +29,6 @@ const App: React.FC = () => {
           <Route path="commit-msg" element={<CommitMsgGen />} />
           <Route path="sql-nosql" element={<SqlToNoSql />} />
           <Route path="og-image" element={<OgImageGen />} />
-          <Route path="github-push" element={<GithubOnboarding />} />
           <Route path="docs" element={<Docs />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

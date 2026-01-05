@@ -1,14 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Database, Terminal, Code, ArrowRight, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Github, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Database, Terminal, Code, ArrowRight, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Zap } from 'lucide-react';
 
 const DASHBOARD_TOOLS = [
   { title: "Mock Data Gen", desc: "Realistic datasets for testing in JSON, CSV, or SQL.", path: "/mock-data", icon: Database, color: "blue" },
   { title: "Regex Builder", desc: "Natural language to perfect Regex patterns.", path: "/regex", icon: Terminal, color: "purple" },
   { title: "Commit Msg Pro", desc: "Generate professional Git commit messages instantly.", path: "/commit-msg", icon: GitCommit, color: "red" },
   { title: "SQL to NoSQL", desc: "Convert tables to MongoDB, Firestore, or JSON.", path: "/sql-nosql", icon: DatabaseZap, color: "orange" },
-  { title: "GitHub Pusher", desc: "Initialize and push your projects to GitHub with ease.", path: "/github-push", icon: Github, color: "dark" },
   { title: "Dev OG Image", desc: "Beautiful social images for your GitHub repos.", path: "/og-image", icon: Image, color: "pink" },
   { title: "Code Simplifier", desc: "Refactor spaghetti into elegant code.", path: "/simplify", icon: Code, color: "noop" },
   { title: "Cron Traveler", desc: "Human language to Cron expressions.", path: "/cron", icon: Clock, color: "amber" },
@@ -43,20 +42,13 @@ const TEXT_VARIANTS: Record<string, string> = {
 };
 
 const Dashboard: React.FC = () => {
-  const [isApiActive, setIsApiActive] = useState(false);
-
-  useEffect(() => {
-    const key = typeof process !== 'undefined' ? process.env.API_KEY : (window as any).VITE_API_KEY;
-    setIsApiActive(!!key);
-  }, []);
-
   return (
     <div className="space-y-12 animate-fade-in pb-10">
       <div className="text-center space-y-4 py-6">
         <div className="flex justify-center mb-6">
-           <div className={`px-4 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${isApiActive ? 'bg-green-500/10 border-green-500/20 text-green-600' : 'bg-red-500/10 border-red-500/20 text-red-600 animate-pulse'}`}>
-              {isApiActive ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-              AI Engine Status: {isApiActive ? 'Online & Functional' : 'Offline (Setup Required)'}
+           <div className="px-4 py-1.5 rounded-full border border-noop-500/20 bg-noop-500/5 text-noop-600 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+              <Zap size={14} className="animate-pulse" />
+              Next-Gen AI Productivity
            </div>
         </div>
         <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-white tracking-tight">
