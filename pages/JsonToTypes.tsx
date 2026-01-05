@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { FileJson, FileType, ArrowRight, Upload, AlertTriangle } from 'lucide-react';
+import { FileJson, FileType, ArrowRight, Upload, AlertTriangle, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import OutputDisplay from '../components/OutputDisplay';
 import Tooltip from '../components/Tooltip';
 import { convertJsonToTypes } from '../services/geminiService';
@@ -11,9 +11,21 @@ const JsonToTypes: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('TypeScript');
   const [isValidJson, setIsValidJson] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isApiConnected, setIsApiConnected] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const languages = ['TypeScript', 'Go', 'Rust', 'Python (Pydantic)', 'Java (Lombok)', 'Swift', 'Kotlin'];
+
+  useEffect(() => {
+    const check = () => {
+      const key = (process?.env?.API_KEY) || ((window as any).API_KEY) || (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY);
+      setIsApiConnected(!!key);
+    };
+    check();
+    const inv = setInterval(check, 2000);
+    return () => clearInterval(inv);
+  }, []);
 
   useEffect(() => {
     if (!jsonInput.trim()) {
@@ -30,12 +42,17 @@ const JsonToTypes: React.FC = () => {
 
   const handleConvert = async () => {
     if (!jsonInput.trim() || !isValidJson) return;
+    
     setLoading(true);
+    setError(null);
+    setOutputCode('');
+    
     try {
       const result = await convertJsonToTypes(jsonInput, language);
+      if (!result) throw new Error("AI returned empty result. Try simplifying your JSON.");
       setOutputCode(result);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setError(e.message || "An unexpected error occurred during conversion.");
     } finally {
       setLoading(false);
     }
@@ -82,10 +99,21 @@ const JsonToTypes: React.FC = () => {
                 disabled={loading || !jsonInput || !isValidJson}
                 className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
             >
-                {loading ? "Casting..." : "Convert"} <FileType size={16} />
+                {loading ? <RefreshCw className="animate-spin" size={16} /> : <FileType size={16} />}
+                <span className="hidden sm:inline">{loading ? "Casting..." : "Convert"}</span>
             </button>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-500 text-sm animate-fade-in shadow-sm">
+            <AlertCircle className="shrink-0" size={18} />
+            <div className="space-y-1">
+                <p className="font-bold">Conversion Error</p>
+                <p>{error}</p>
+            </div>
+        </div>
+      )}
 
       <div className="flex-1 grid md:grid-cols-2 gap-4 min-h-0">
         <div className={`flex flex-col rounded-xl overflow-hidden border bg-dark-800 transition-colors ${isValidJson ? 'border-dark-600' : 'border-red-500/50'}`}>
@@ -102,12 +130,11 @@ const JsonToTypes: React.FC = () => {
                     )}
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-500 hidden sm:inline">Paste or upload</span>
                     <button 
                         onClick={() => fileInputRef.current?.click()}
                         className="flex items-center gap-1.5 text-xs bg-dark-600 hover:bg-dark-500 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-md transition-colors border border-dark-500 hover:border-dark-400"
                     >
-                        <Upload size={14} /> Upload JSON
+                        <Upload size={14} /> Upload
                     </button>
                     <input 
                         type="file" 
@@ -118,18 +145,25 @@ const JsonToTypes: React.FC = () => {
                     />
                 </div>
             </div>
-            <textarea
-                value={jsonInput}
-                onChange={(e) => setJsonInput(e.target.value)}
-                placeholder='{ "user": { "id": 1, "name": "Noop" } }'
-                className="flex-1 w-full bg-[#0d1117] p-4 text-sm font-mono text-slate-300 outline-none resize-none focus:ring-1 focus:ring-indigo-500/50"
-                spellCheck={false}
-            />
+            <div className="flex-1 relative">
+                <textarea
+                    value={jsonInput}
+                    onChange={(e) => setJsonInput(e.target.value)}
+                    placeholder='{ "user": { "id": 1, "name": "Noop" } }'
+                    className="absolute inset-0 w-full h-full bg-[#0d1117] p-4 text-sm font-mono text-slate-300 outline-none resize-none focus:ring-1 focus:ring-indigo-500/50"
+                    spellCheck={false}
+                />
+            </div>
+            {isApiConnected && (
+              <div className="px-4 py-2 border-t border-dark-600 bg-dark-900 flex items-center gap-2 text-[9px] font-bold text-green-500 uppercase tracking-widest">
+                  <ShieldCheck size={12} /> API Connected
+              </div>
+            )}
         </div>
 
         <div className="flex flex-col h-full relative">
              <div className="absolute left-0 top-1/2 -translate-x-1/2 z-10 hidden md:block">
-                <div className="bg-dark-700 rounded-full p-2 border border-dark-500 text-slate-400">
+                <div className="bg-dark-700 rounded-full p-2 border border-dark-500 text-slate-400 shadow-xl">
                     <ArrowRight size={16} />
                 </div>
              </div>

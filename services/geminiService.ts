@@ -25,9 +25,12 @@ const createAiClient = () => {
 const cleanMarkdown = (text: string | undefined): string => {
   if (!text) return "";
   const trimmed = text.trim();
-  const codeBlockRegex = /^```(?:\w+)?\s*([\s\S]*?)\s*```$/;
-  const match = trimmed.match(codeBlockRegex);
-  if (match) return match[1].trim();
+  // Regex to remove markdown code blocks
+  const codeBlockRegex = /```(?:\w+)?\s*([\s\S]*?)\s*```/g;
+  const matches = [...trimmed.matchAll(codeBlockRegex)];
+  if (matches.length > 0) {
+    return matches.map(m => m[1].trim()).join('\n\n');
+  }
   return trimmed;
 };
 
@@ -40,6 +43,7 @@ const handleApiError = (error: any): string => {
   }
   if (msg.includes("403")) return "Access Denied: Is the Generative Language API enabled for this key?";
   if (msg.includes("401")) return "Invalid API Key: Please check your configuration.";
+  if (msg.includes("SAFETY")) return "Blocked by Safety Filter: The content was flagged as unsafe by the AI model.";
   
   return `AI Connection Error: ${msg || "Something went wrong while connecting to the AI."}`;
 };
@@ -70,7 +74,6 @@ export const generateMockData = async (req: MockDataRequest): Promise<string> =>
 
 export const generateRegex = async (description: string, testString: string): Promise<{ regex: string; explanation: string }> => {
   const ai = createAiClient();
-  // We'll use Flash as primary for speed and availability, with Pro as fallback if needed.
   const model = "gemini-3-flash-preview"; 
   try {
     const response = await ai.models.generateContent({
@@ -143,7 +146,7 @@ export const convertJsonToTypes = async (jsonContent: string, language: string):
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Convert this JSON to ${language} types/interfaces. Return ONLY the code:\n\n${jsonContent}`,
+      contents: `You are a senior developer. Convert this raw JSON object into ${language} type definitions (interfaces/classes). Use standard naming conventions. Return ONLY the code, NO explanation or markdown headers:\n\n${jsonContent}`,
     });
     return cleanMarkdown(response.text);
   } catch (error) {
