@@ -3,46 +3,72 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { MockDataRequest } from "../types";
 
 /**
- * Robust API Key detection for browser environments.
+ * World-class API Key detection.
+ * Prioritizes process.env.API_KEY as per instructions, with fallbacks for
+ * various deployment environments like Vercel, Vite, or direct injection.
  */
 const getApiKey = (): string | undefined => {
-  // Check process.env (primary requirement)
-  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-    return process.env.API_KEY;
+  try {
+    // 1. Primary: Standard process.env (Shimmed or Build-time replaced)
+    if (typeof process !== 'undefined' && process?.env?.API_KEY) {
+      return process.env.API_KEY;
+    }
+    
+    // 2. Secondary: Vite/Modern build tool pattern
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY) {
+      // @ts-ignore
+      return import.meta.env.VITE_API_KEY;
+    }
+
+    // 3. Fallback: Browser globals
+    return (window as any).API_KEY || 
+           (window as any).VITE_API_KEY || 
+           (window as any).process?.env?.API_KEY ||
+           (window as any)._env_?.API_KEY;
+  } catch (e) {
+    return undefined;
   }
-  // Check common browser injection points
-  return (window as any).API_KEY || (window as any).VITE_API_KEY || (window as any)._env_?.API_KEY;
 };
 
 const getClient = () => {
   const apiKey = getApiKey();
   if (!apiKey) return null;
+  // Initialize with the detected key
   return new GoogleGenAI({ apiKey });
 };
 
 const ensureClient = () => {
   const client = getClient();
   if (!client) {
-    throw new Error("API_KEY not found. Please set your environment variable in Vercel.");
+    throw new Error("API Connection Error: 'API_KEY' environment variable is missing. Ensure you have added it to your Vercel Project Settings.");
   }
   return client;
 };
 
 const cleanMarkdown = (text: string | undefined): string => {
   if (!text) return "";
+  const trimmed = text.trim();
   const codeBlockRegex = /^```(?:\w+)?\s*([\s\S]*?)\s*```$/;
-  const match = text.trim().match(codeBlockRegex);
+  const match = trimmed.match(codeBlockRegex);
   if (match) return match[1].trim();
-  return text.trim();
+  return trimmed;
 };
 
 const handleApiError = (error: any): string => {
-  console.error("Gemini API Error:", error);
+  console.error("AllNoop Gemini API Error:", error);
   const msg = error?.message || "";
-  if (msg.includes("403")) return "Access Denied: Is the Generative Language API enabled for this key?";
-  if (msg.includes("429")) return "Rate Limit Reached: Please wait a moment or upgrade your quota.";
-  if (msg.includes("401")) return "Invalid API Key: Please verify your key in the environment settings.";
-  return `Service Error: ${msg || "Unexpected response from AI service."}`;
+  
+  // Specific guidance for Vercel users
+  if (msg.includes("API_KEY not found") || msg.includes("environment variable is missing")) {
+    return "Configuration Error: The app cannot find your API Key. If on Vercel, ensure the key is named exactly 'API_KEY' in your Environment Variables and redeploy.";
+  }
+  
+  if (msg.includes("403")) return "Permission Denied: Ensure the 'Generative Language API' is enabled in your Google Cloud Console.";
+  if (msg.includes("429")) return "Rate Limit: You've sent too many requests. Please wait a minute.";
+  if (msg.includes("401")) return "Auth Error: Your API Key is invalid. Double-check the value in your project settings.";
+  
+  return `AI Service Error: ${msg || "Unknown error occurred."}`;
 };
 
 export const generateMockData = async (req: MockDataRequest): Promise<string> => {
@@ -60,7 +86,7 @@ export const generateMockData = async (req: MockDataRequest): Promise<string> =>
       });
       return response.text || "[]";
     } else {
-      prompt += ` Return ONLY the raw data in ${req.format} format. No preamble.`;
+      prompt += ` Return ONLY the raw data in ${req.format} format.`;
       const response = await ai.models.generateContent({ model, contents: prompt });
       return cleanMarkdown(response.text);
     }
@@ -95,7 +121,7 @@ export const simplifyCode = async (code: string, language: string): Promise<stri
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: `Refactor this ${language} code for elegance. Code only:\n\n${code}`
+      contents: `Refactor this ${language} code for elegance. No markdown, code only:\n\n${code}`
     });
     return cleanMarkdown(response.text);
   } catch (error) {
@@ -105,11 +131,15 @@ export const simplifyCode = async (code: string, language: string): Promise<stri
 
 export const detectLanguage = async (code: string): Promise<string> => {
   const ai = ensureClient();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: `Language name only for: ${code.substring(0, 500)}`,
-  });
-  return response.text?.trim() || "JavaScript";
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Reply with ONLY the language name of this code: ${code.substring(0, 300)}`,
+    });
+    return response.text?.trim() || "JavaScript";
+  } catch {
+    return "JavaScript";
+  }
 };
 
 export const generateCron = async (description: string): Promise<{ cron: string; explanation: string }> => {
@@ -117,7 +147,7 @@ export const generateCron = async (description: string): Promise<{ cron: string;
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `English to Cron: "${description}". Return JSON {cron, explanation}`,
+      contents: `Translate to Cron: "${description}". Return JSON {cron, explanation}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -135,44 +165,60 @@ export const generateCron = async (description: string): Promise<{ cron: string;
 
 export const convertJsonToTypes = async (jsonContent: string, language: string): Promise<string> => {
   const ai = ensureClient();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
-    contents: `Convert to ${language} types. Code only:\n\n${jsonContent}`,
-  });
-  return cleanMarkdown(response.text);
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview",
+      contents: `Convert JSON to ${language} types. Code only, no markdown:\n\n${jsonContent}`,
+    });
+    return cleanMarkdown(response.text);
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
 };
 
 export const generateReadme = async (projectInfo: string, style: string = "Standard"): Promise<string> => {
   const ai = ensureClient();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: `Generate ${style} README.md for: ${projectInfo}. Markdown only.`,
-  });
-  return cleanMarkdown(response.text);
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Generate a ${style} style README.md for this project: ${projectInfo}. Raw markdown only.`,
+    });
+    return cleanMarkdown(response.text);
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
 };
 
 export const generateCommitMessage = async (changes: string, style: string): Promise<string> => {
   const ai = ensureClient();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: `Commit message for: "${changes}" (Style: ${style}). Message only.`,
-  });
-  return response.text?.trim() || "chore: update code";
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Git commit message for: "${changes}". Format: ${style}. Return message only.`,
+    });
+    return response.text?.trim() || "chore: update source";
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
 };
 
 export const sqlToNoSql = async (sql: string, target: string): Promise<string> => {
   const ai = ensureClient();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
-    contents: `SQL to ${target}. Structure only:\n\n${sql}`,
-  });
-  return cleanMarkdown(response.text);
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview",
+      contents: `Convert SQL to ${target}. Optimized structure only, no markdown:\n\n${sql}`,
+    });
+    return cleanMarkdown(response.text);
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
 };
 
 export const generateOgImage = async (title: string, subtitle: string, tech: string): Promise<string> => {
   const ai = ensureClient();
   try {
-    const prompt = `Modern tech OG image. Project: "${title}". Subtitle: "${subtitle}". Keywords: ${tech}. Style: Neon, Dark, Developer Aesthetic.`;
+    const prompt = `Developer OG Image. Project: "${title}". Tagline: "${subtitle}". Stack: ${tech}. Style: Professional, Dark, High-Contrast.`;
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ text: prompt }] },
@@ -181,7 +227,7 @@ export const generateOgImage = async (title: string, subtitle: string, tech: str
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     }
-    throw new Error("Image could not be rendered.");
+    throw new Error("No image data returned from AI.");
   } catch (error) {
     throw new Error(handleApiError(error));
   }

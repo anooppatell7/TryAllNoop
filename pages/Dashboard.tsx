@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Database, Terminal, Code, ArrowRight, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Zap } from 'lucide-react';
+import { Database, Terminal, Code, ArrowRight, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Zap, ShieldCheck } from 'lucide-react';
 
 const DASHBOARD_TOOLS = [
   { title: "Mock Data Gen", desc: "Realistic datasets for testing in JSON, CSV, or SQL.", path: "/mock-data", icon: Database, color: "blue" },
@@ -51,7 +51,7 @@ const Dashboard: React.FC = () => {
               Next-Gen AI Productivity
            </div>
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
           Automate the <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-noop-500">All</span>.
           <br />
           Embrace the <span className="text-slate-400 dark:text-slate-500 font-mono">NoOp</span>.
@@ -60,6 +60,13 @@ const Dashboard: React.FC = () => {
           The ultimate AI-powered productivity suite for modern developers. 
           Stop writing boilerplate, start building.
         </p>
+
+        <div className="pt-4 flex justify-center">
+            <div className="flex items-center gap-2 px-4 py-2 bg-dark-800 rounded-xl border border-dark-700 text-xs text-slate-500">
+                <ShieldCheck size={14} className="text-green-500" />
+                <span>Fully powered by your <strong>Gemini API Key</strong>. No other setup needed.</span>
+            </div>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

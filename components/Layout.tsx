@@ -1,20 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap, ShieldCheck, ShieldAlert, Bug } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isApiConnected, setIsApiConnected] = useState<boolean | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   // Initialize theme and check API
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
     setIsDarkMode(isDark);
 
-    // Subtle check for API Key availability
     const hasKey = !!(
       (typeof process !== 'undefined' && process.env?.API_KEY) || 
       (window as any).API_KEY || 
@@ -87,12 +87,28 @@ const Layout: React.FC = () => {
         </nav>
 
         <div className="p-4 space-y-2">
-           <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
+           <div 
+             onClick={() => setShowDebug(!showDebug)}
+             className={`cursor-help flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
              isApiConnected ? 'text-green-500 bg-green-500/5 border-green-500/10' : 'text-red-500 bg-red-500/5 border-red-500/10'
            }`}>
               {isApiConnected ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-              {isApiConnected ? 'API Connected' : 'API Offline'}
+              {isApiConnected ? 'API Connected' : 'API Missing'}
+              <Bug size={10} className="ml-auto opacity-50" />
            </div>
+           
+           {showDebug && (
+             <div className="p-3 bg-dark-950 rounded-lg border border-dark-700 text-[9px] font-mono text-slate-500 space-y-1 animate-fade-in">
+                <p>Lookup Path:</p>
+                <p className={isApiConnected ? "text-green-600" : "text-red-600"}>• process.env.API_KEY</p>
+                <p className="text-slate-600">• window.API_KEY</p>
+                <p className="text-slate-600">• VITE_API_KEY</p>
+                <div className="mt-2 text-[8px] italic border-t border-dark-800 pt-1">
+                  Ensure the key is added in Vercel Dashboard Settings.
+                </div>
+             </div>
+           )}
+
            <button 
              onClick={toggleTheme}
              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-dark-700 border border-dark-600 text-slate-600 dark:text-slate-400 hover:text-noop-500 transition-all group"
@@ -103,7 +119,7 @@ const Layout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Mobile Header */}
+      {/* Mobile Header (same as before) */}
       <header className="md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors">
          <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2">
