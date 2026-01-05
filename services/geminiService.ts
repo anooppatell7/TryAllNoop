@@ -2,46 +2,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MockDataRequest } from "../types";
 
-/**
- * World-class API Key detection.
- * Prioritizes process.env.API_KEY as per instructions, with fallbacks for
- * various deployment environments like Vercel, Vite, or direct injection.
- */
-const getApiKey = (): string | undefined => {
-  try {
-    // 1. Primary: Standard process.env (Shimmed or Build-time replaced)
-    if (typeof process !== 'undefined' && process?.env?.API_KEY) {
-      return process.env.API_KEY;
-    }
-    
-    // 2. Secondary: Vite/Modern build tool pattern
-    // @ts-ignore
-    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY) {
-      // @ts-ignore
-      return import.meta.env.VITE_API_KEY;
-    }
-
-    // 3. Fallback: Browser globals
-    return (window as any).API_KEY || 
-           (window as any).VITE_API_KEY || 
-           (window as any).process?.env?.API_KEY ||
-           (window as any)._env_?.API_KEY;
-  } catch (e) {
-    return undefined;
-  }
-};
-
 const getClient = () => {
-  const apiKey = getApiKey();
+  // Exclusively use process.env.API_KEY as per guidelines. 
+  // The shim in index.tsx handles mapping VITE_API_KEY to this variable.
+  const apiKey = process.env.API_KEY;
   if (!apiKey) return null;
-  // Initialize with the detected key
   return new GoogleGenAI({ apiKey });
 };
 
 const ensureClient = () => {
   const client = getClient();
   if (!client) {
-    throw new Error("API Connection Error: 'API_KEY' environment variable is missing. Ensure you have added it to your Vercel Project Settings.");
+    throw new Error("API_KEY not found. Please ensure VITE_API_KEY or API_KEY is set in your Vercel environment variables.");
   }
   return client;
 };
@@ -59,16 +31,11 @@ const handleApiError = (error: any): string => {
   console.error("AllNoop Gemini API Error:", error);
   const msg = error?.message || "";
   
-  // Specific guidance for Vercel users
-  if (msg.includes("API_KEY not found") || msg.includes("environment variable is missing")) {
-    return "Configuration Error: The app cannot find your API Key. If on Vercel, ensure the key is named exactly 'API_KEY' in your Environment Variables and redeploy.";
-  }
+  if (msg.includes("403")) return "Access Denied: Is the Generative Language API enabled?";
+  if (msg.includes("429")) return "Quota Exceeded: Please wait a moment.";
+  if (msg.includes("401")) return "Invalid API Key: Please check your Vercel Environment Variables.";
   
-  if (msg.includes("403")) return "Permission Denied: Ensure the 'Generative Language API' is enabled in your Google Cloud Console.";
-  if (msg.includes("429")) return "Rate Limit: You've sent too many requests. Please wait a minute.";
-  if (msg.includes("401")) return "Auth Error: Your API Key is invalid. Double-check the value in your project settings.";
-  
-  return `AI Service Error: ${msg || "Unknown error occurred."}`;
+  return `AI Error: ${msg || "Unexpected service response."}`;
 };
 
 export const generateMockData = async (req: MockDataRequest): Promise<string> => {

@@ -15,12 +15,14 @@ const Layout: React.FC = () => {
     const isDark = document.documentElement.classList.contains('dark');
     setIsDarkMode(isDark);
 
-    const hasKey = !!(
-      (typeof process !== 'undefined' && process.env?.API_KEY) || 
-      (window as any).API_KEY || 
-      (window as any).VITE_API_KEY
-    );
-    setIsApiConnected(hasKey);
+    // Check the global shimmed process.env.API_KEY
+    const checkApi = () => {
+      setIsApiConnected(!!process.env.API_KEY);
+    };
+
+    checkApi();
+    const interval = setInterval(checkApi, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   const toggleTheme = () => {
@@ -60,7 +62,7 @@ const Layout: React.FC = () => {
       <aside className="hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20">
         <header className="p-6 flex items-center gap-3 border-b border-dark-700">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl shadow-lg shadow-noop-500/20 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600 text-white">
+            <div className="w-10 h-10 rounded-xl shadow-lg shadow-noop-500/20 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600 text-white">
               <Zap size={24} fill="currentColor" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">AllNoop</span>
@@ -89,23 +91,20 @@ const Layout: React.FC = () => {
         <div className="p-4 space-y-2">
            <div 
              onClick={() => setShowDebug(!showDebug)}
-             className={`cursor-help flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
+             className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
              isApiConnected ? 'text-green-500 bg-green-500/5 border-green-500/10' : 'text-red-500 bg-red-500/5 border-red-500/10'
            }`}>
               {isApiConnected ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-              {isApiConnected ? 'API Connected' : 'API Missing'}
+              {isApiConnected ? 'Connected' : 'Setup Required'}
               <Bug size={10} className="ml-auto opacity-50" />
            </div>
            
            {showDebug && (
              <div className="p-3 bg-dark-950 rounded-lg border border-dark-700 text-[9px] font-mono text-slate-500 space-y-1 animate-fade-in">
-                <p>Lookup Path:</p>
-                <p className={isApiConnected ? "text-green-600" : "text-red-600"}>• process.env.API_KEY</p>
-                <p className="text-slate-600">• window.API_KEY</p>
-                <p className="text-slate-600">• VITE_API_KEY</p>
-                <div className="mt-2 text-[8px] italic border-t border-dark-800 pt-1">
-                  Ensure the key is added in Vercel Dashboard Settings.
-                </div>
+                <p>Status: {isApiConnected ? 'Ready' : 'Missing Key'}</p>
+                <p>Resolution Step:</p>
+                <p className="text-slate-300">• Rename Vercel key to <b>VITE_API_KEY</b></p>
+                <p className="text-slate-300">• Redeploy your app</p>
              </div>
            )}
 
@@ -119,7 +118,7 @@ const Layout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Mobile Header (same as before) */}
+      {/* Mobile Header */}
       <header className="md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors">
          <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2">
