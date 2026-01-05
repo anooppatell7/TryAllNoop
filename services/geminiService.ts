@@ -3,44 +3,23 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { MockDataRequest } from "../types";
 
 /**
- * Highly resilient API Key retrieval.
- * Checks Vite, Process, and Window globals to ensure Vercel deployments
- * can always find the key regardless of prefixing.
+ * Gets the most current API key available.
  */
 const getActiveKey = (): string | undefined => {
-  try {
-    // 1. Check standard process.env (Vercel/Node fallback)
-    const procKey = process?.env?.API_KEY || (process?.env as any)?.VITE_API_KEY;
-    if (procKey) return procKey;
-
-    // 2. Check Vite-specific meta environment
-    // @ts-ignore
-    const viteKey = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY;
-    if (viteKey) return viteKey;
-
-    // 3. Check window globals (injected by index.tsx shim)
-    const winKey = (window as any).API_KEY || (window as any).VITE_API_KEY;
-    if (winKey) return winKey;
-
-    return undefined;
-  } catch (e) {
-    return undefined;
-  }
+  return (process?.env?.API_KEY) || 
+         ((process?.env as any)?.VITE_API_KEY) || 
+         ((window as any).API_KEY) || 
+         ((window as any).VITE_API_KEY) ||
+         // @ts-ignore
+         (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY);
 };
 
-const getClient = () => {
+const createAiClient = () => {
   const apiKey = getActiveKey();
-  if (!apiKey) return null;
-  // Initialize SDK with the found key
-  return new GoogleGenAI({ apiKey });
-};
-
-const ensureClient = () => {
-  const client = getClient();
-  if (!client) {
-    throw new Error("API_KEY not found. Please ensure VITE_API_KEY is set in Vercel Settings > Environment Variables and that you have Redeployed.");
+  if (!apiKey) {
+    throw new Error("API Key Missing: Please add VITE_API_KEY to your Vercel project settings and redeploy.");
   }
-  return client;
+  return new GoogleGenAI({ apiKey });
 };
 
 const cleanMarkdown = (text: string | undefined): string => {
@@ -56,15 +35,17 @@ const handleApiError = (error: any): string => {
   console.error("AllNoop Gemini API Error:", error);
   const msg = error?.message || "";
   
-  if (msg.includes("403")) return "Access Denied: Is the Generative Language API enabled?";
-  if (msg.includes("429")) return "Quota Exceeded: Please wait a moment.";
-  if (msg.includes("401")) return "Invalid API Key: Please check your Vercel Environment Variables.";
+  if (msg.includes("429")) {
+    return "Rate Limit/Quota Exceeded: Your project is out of free requests. Try clicking 'Pro Mode' in the sidebar to use your own private key.";
+  }
+  if (msg.includes("403")) return "Access Denied: Is the Generative Language API enabled for this key?";
+  if (msg.includes("401")) return "Invalid API Key: Please check your configuration.";
   
-  return `AI Error: ${msg || "Unexpected service response."}`;
+  return `AI Connection Error: ${msg || "Something went wrong while connecting to the AI."}`;
 };
 
 export const generateMockData = async (req: MockDataRequest): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   const model = "gemini-3-flash-preview";
   let prompt = `Generate ${req.count} records of ${req.complexity.toLowerCase()} mock data about "${req.topic}".`;
   
@@ -88,11 +69,13 @@ export const generateMockData = async (req: MockDataRequest): Promise<string> =>
 };
 
 export const generateRegex = async (description: string, testString: string): Promise<{ regex: string; explanation: string }> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
+  // We'll use Flash as primary for speed and availability, with Pro as fallback if needed.
+  const model = "gemini-3-flash-preview"; 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `Generate Regex for: "${description}". Test: "${testString}". Return JSON {regex, explanation}`,
+      model,
+      contents: `You are a Regex expert. Generate a Regular Expression for: "${description}". Validate it against this test string: "${testString}". Return valid JSON with "regex" and "explanation" keys.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -109,11 +92,11 @@ export const generateRegex = async (description: string, testString: string): Pr
 };
 
 export const simplifyCode = async (code: string, language: string): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `Refactor this ${language} code for elegance. No markdown, code only:\n\n${code}`
+      model: "gemini-3-flash-preview",
+      contents: `Refactor this ${language} code to be more readable, efficient and modern. Return ONLY the code:\n\n${code}`
     });
     return cleanMarkdown(response.text);
   } catch (error) {
@@ -122,11 +105,11 @@ export const simplifyCode = async (code: string, language: string): Promise<stri
 };
 
 export const detectLanguage = async (code: string): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Reply with ONLY the language name of this code: ${code.substring(0, 300)}`,
+      contents: `Identify the programming language. Reply with ONLY the name:\n\n${code.substring(0, 500)}`,
     });
     return response.text?.trim() || "JavaScript";
   } catch {
@@ -135,11 +118,11 @@ export const detectLanguage = async (code: string): Promise<string> => {
 };
 
 export const generateCron = async (description: string): Promise<{ cron: string; explanation: string }> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Translate to Cron: "${description}". Return JSON {cron, explanation}`,
+      contents: `Convert to Cron: "${description}". Return JSON {cron, explanation}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -156,11 +139,11 @@ export const generateCron = async (description: string): Promise<{ cron: string;
 };
 
 export const convertJsonToTypes = async (jsonContent: string, language: string): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `Convert JSON to ${language} types. Code only, no markdown:\n\n${jsonContent}`,
+      model: "gemini-3-flash-preview",
+      contents: `Convert this JSON to ${language} types/interfaces. Return ONLY the code:\n\n${jsonContent}`,
     });
     return cleanMarkdown(response.text);
   } catch (error) {
@@ -169,11 +152,11 @@ export const convertJsonToTypes = async (jsonContent: string, language: string):
 };
 
 export const generateReadme = async (projectInfo: string, style: string = "Standard"): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Generate a ${style} style README.md for this project: ${projectInfo}. Raw markdown only.`,
+      contents: `Generate a ${style} README.md for: ${projectInfo}. Return raw markdown only.`,
     });
     return cleanMarkdown(response.text);
   } catch (error) {
@@ -182,24 +165,24 @@ export const generateReadme = async (projectInfo: string, style: string = "Stand
 };
 
 export const generateCommitMessage = async (changes: string, style: string): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Git commit message for: "${changes}". Format: ${style}. Return message only.`,
+      contents: `Write a Git commit message for: "${changes}". Style: ${style}. Message only.`,
     });
-    return response.text?.trim() || "chore: update source";
+    return response.text?.trim() || "chore: update code";
   } catch (error) {
     throw new Error(handleApiError(error));
   }
 };
 
 export const sqlToNoSql = async (sql: string, target: string): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `Convert SQL to ${target}. Optimized structure only, no markdown:\n\n${sql}`,
+      model: "gemini-3-flash-preview",
+      contents: `Convert this SQL to ${target}. Optimize structure, no markdown, code only:\n\n${sql}`,
     });
     return cleanMarkdown(response.text);
   } catch (error) {
@@ -208,18 +191,18 @@ export const sqlToNoSql = async (sql: string, target: string): Promise<string> =
 };
 
 export const generateOgImage = async (title: string, subtitle: string, tech: string): Promise<string> => {
-  const ai = ensureClient();
+  const ai = createAiClient();
   try {
-    const prompt = `Developer OG Image. Project: "${title}". Tagline: "${subtitle}". Stack: ${tech}. Style: Professional, Dark, High-Contrast.`;
+    const prompt = `Developer OG Image. Project: "${title}". Tagline: "${subtitle}". Tech: ${tech}. Professional dark theme, minimalist.`;
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+      model: 'gemini-3-pro-image-preview',
       contents: { parts: [{ text: prompt }] },
-      config: { imageConfig: { aspectRatio: "16:9" } }
+      config: { imageConfig: { aspectRatio: "16:9", imageSize: "1K" } }
     });
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     }
-    throw new Error("No image data returned from AI.");
+    throw new Error("No image generated.");
   } catch (error) {
     throw new Error(handleApiError(error));
   }

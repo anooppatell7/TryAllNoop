@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Terminal, Wand2, Info, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Terminal, Wand2, Info, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import OutputDisplay from '../components/OutputDisplay';
 import Tooltip from '../components/Tooltip';
 import { generateRegex } from '../services/geminiService';
@@ -11,11 +11,12 @@ const RegexBuilder: React.FC = () => {
   const [result, setResult] = useState<{ regex: string; explanation: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMatch, setIsMatch] = useState<boolean | null>(null);
-  const [regexError, setRegexError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setValidationError(null);
+    setError(null);
     if (!description.trim()) return;
     
     if (!testString.trim()) {
@@ -28,8 +29,8 @@ const RegexBuilder: React.FC = () => {
     try {
       const data = await generateRegex(description, testString);
       setResult(data);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setError(e.message || "Failed to generate regex. Check your API key or quota.");
     } finally {
       setLoading(false);
     }
@@ -38,17 +39,14 @@ const RegexBuilder: React.FC = () => {
   useEffect(() => {
     if (!result?.regex || !testString) {
       setIsMatch(null);
-      setRegexError(null);
       return;
     }
 
     try {
       const re = new RegExp(result.regex);
       setIsMatch(re.test(testString));
-      setRegexError(null);
     } catch (e) {
       setIsMatch(null);
-      setRegexError("Invalid Regex syntax generated (JS incompatible)");
     }
   }, [result, testString]);
 
@@ -57,18 +55,18 @@ const RegexBuilder: React.FC = () => {
       <div className="text-center space-y-3">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center justify-center gap-3">
           <Terminal className="text-purple-500" />
-          Regex "No-Brainer"
+          Regex Builder
         </h1>
         <p className="text-slate-600 dark:text-slate-400">
-          Stop struggling with hieroglyphics. Describe it, match it.
+          Turn natural language into perfect Regular Expressions.
         </p>
       </div>
 
       <div className="bg-dark-800 border border-dark-700 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
         <div className="space-y-2">
             <label className="text-sm font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center">
-              I want to match...
-              <Tooltip text="Describe the pattern logic." />
+              Pattern Description
+              <Tooltip text="Describe what you want to match in plain English." />
             </label>
             <div className="relative">
                 <input
@@ -78,34 +76,43 @@ const RegexBuilder: React.FC = () => {
                       setDescription(e.target.value);
                       if (validationError) setValidationError(null);
                     }}
-                    placeholder="e.g. A valid email address ending in .edu"
+                    placeholder="e.g. A 10-digit phone number with optional dashes"
                     className="w-full bg-dark-950 border border-dark-600 rounded-xl px-5 py-4 text-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-dark-600"
                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
                 />
                 <button
                     onClick={handleGenerate}
                     disabled={loading || !description}
-                    className="absolute right-2 top-2 bottom-2 aspect-square rounded-lg bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="absolute right-2 top-2 bottom-2 px-4 rounded-lg bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold gap-2"
                 >
-                    {loading ? <Wand2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
+                    {loading ? <RefreshCw className="animate-spin" size={18} /> : <Wand2 size={18} />}
+                    <span className="hidden sm:inline">{loading ? 'Thinking...' : 'Build'}</span>
                 </button>
             </div>
+            
             {validationError && (
-              <p className="text-red-500 text-sm flex items-center gap-2 mt-2">
+              <p className="text-red-500 text-xs flex items-center gap-1.5 mt-2 animate-fade-in">
                 <AlertCircle size={14} /> {validationError}
               </p>
             )}
+
+            {error && (
+              <div className="p-4 mt-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-500 text-sm animate-fade-in">
+                <AlertCircle className="shrink-0" size={18} />
+                <p>{error}</p>
+              </div>
+            )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 pt-2 border-t border-dark-700">
              <div className="flex items-center justify-between">
-                <label className={`text-sm font-medium flex items-center ${validationError ? 'text-red-500' : 'text-slate-500'}`}>
-                  Test String & Validation
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center">
+                  Live Validation
                 </label>
                 {isMatch !== null && (
-                    <span className={`flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-full ${isMatch ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
-                        {isMatch ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                        {isMatch ? 'MATCH' : 'NO MATCH'}
+                    <span className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${isMatch ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                        {isMatch ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                        {isMatch ? 'MATCHES' : 'NO MATCH'}
                     </span>
                 )}
              </div>
@@ -113,9 +120,9 @@ const RegexBuilder: React.FC = () => {
                 type="text"
                 value={testString}
                 onChange={(e) => setTestString(e.target.value)}
-                placeholder="Paste a string here..."
-                className={`w-full bg-dark-900 border rounded-lg px-4 py-2 text-slate-800 dark:text-slate-300 text-sm outline-none transition-colors ${
-                    isMatch === true ? 'border-green-500/50' : isMatch === false ? 'border-red-500/50' : 'border-dark-600'
+                placeholder="Paste test text here to verify the regex..."
+                className={`w-full bg-dark-900 border rounded-lg px-4 py-3 text-slate-800 dark:text-slate-300 text-sm outline-none transition-all ${
+                    isMatch === true ? 'border-green-500/50 bg-green-500/5' : isMatch === false ? 'border-red-500/50 bg-red-500/5' : 'border-dark-600'
                 }`}
              />
         </div>
@@ -135,7 +142,7 @@ const RegexBuilder: React.FC = () => {
                 <span className="font-mono text-sm font-bold">Explanation</span>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                {result?.explanation || "Breakdown will appear here."}
+                {result?.explanation || "A detailed breakdown of how the pattern works will appear here."}
             </p>
           </div>
       </div>

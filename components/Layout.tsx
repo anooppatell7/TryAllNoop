@@ -1,19 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap, ShieldCheck, ShieldAlert, Bug, ExternalLink } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap, ShieldCheck, ShieldAlert, Bug, ExternalLink, Sparkles } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isApiConnected, setIsApiConnected] = useState<boolean | null>(null);
+  const [isProMode, setIsProMode] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
-    const checkApi = () => {
-      // Check every possible location dynamically
-      // This matches the logic in geminiService.ts
+    const checkApi = async () => {
       const key = (process?.env?.API_KEY) || 
                   ((process?.env as any)?.VITE_API_KEY) || 
                   ((window as any).API_KEY) || 
@@ -22,12 +21,25 @@ const Layout: React.FC = () => {
                   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY);
       
       setIsApiConnected(!!key);
+
+      // Check for AI Studio Key Selection
+      if ((window as any).aistudio?.hasSelectedApiKey) {
+        const hasSelected = await (window as any).aistudio.hasSelectedApiKey();
+        setIsProMode(hasSelected);
+      }
     };
 
     checkApi();
     const interval = setInterval(checkApi, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleOpenSelectKey = async () => {
+    if ((window as any).aistudio?.openSelectKey) {
+      await (window as any).aistudio.openSelectKey();
+      setIsProMode(true);
+    }
+  };
 
   const toggleTheme = () => {
     const newMode = !isDarkMode;
@@ -92,34 +104,42 @@ const Layout: React.FC = () => {
         </nav>
 
         <div className="p-4 space-y-2">
+           {isProMode ? (
+             <div className="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                <Sparkles size={14} className="animate-pulse" />
+                Pro Mode Active
+             </div>
+           ) : (
+             <button 
+               onClick={handleOpenSelectKey}
+               className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-noop-500/10 text-noop-400 border border-noop-500/20 hover:bg-noop-500/20 transition-all"
+             >
+                <Sparkles size={14} />
+                Unlock Pro Mode
+             </button>
+           )}
+
            <button 
              onClick={() => setShowDebug(!showDebug)}
              className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
              isApiConnected ? 'text-green-500 bg-green-500/5 border-green-500/10' : 'text-red-500 bg-red-500/5 border-red-500/10 animate-pulse'
            }`}>
               {isApiConnected ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-              {isApiConnected ? 'AI System Active' : 'Setup Required'}
+              {isApiConnected ? 'System Ready' : 'Setup Required'}
               <Bug size={10} className="ml-auto opacity-50" />
            </button>
            
            {showDebug && (
              <div className="p-4 bg-dark-950 rounded-xl border border-dark-700 text-[10px] font-mono text-slate-500 space-y-3 animate-fade-in shadow-2xl">
                 <div className="flex items-center justify-between border-b border-dark-800 pb-2">
-                   <span className="text-noop-500 font-bold">Vercel Config Guide</span>
+                   <span className="text-noop-500 font-bold">Connection Info</span>
                    <button onClick={() => setShowDebug(false)}><X size={12} /></button>
                 </div>
-                {!isApiConnected ? (
-                  <div className="space-y-2">
-                    <p className="text-slate-300">1. Go to <span className="text-white">Settings &gt; Env Variables</span></p>
-                    <p className="text-slate-300">2. Add Key: <b className="text-noop-400">VITE_API_KEY</b></p>
-                    <p className="text-slate-300">3. <span className="text-white">Redeploy</span> the project.</p>
-                    <a href="https://vercel.com/docs/projects/environment-variables" target="_blank" className="flex items-center gap-1 text-blue-400 mt-2 hover:underline">
-                      Vercel Docs <ExternalLink size={10} />
-                    </a>
-                  </div>
-                ) : (
-                  <p className="text-green-600">Connected to Gemini. Ready to automate.</p>
-                )}
+                <div className="space-y-2">
+                    <p className="text-slate-300">Source: <span className="text-white font-bold">{isProMode ? 'User Key (Pro)' : 'Vercel Env'}</span></p>
+                    <p className="text-slate-300">Status: {isApiConnected ? 'Connected' : 'Disconnected'}</p>
+                    {!isApiConnected && <p className="text-red-400 text-[8px]">Set VITE_API_KEY in Vercel or click Pro Mode.</p>}
+                </div>
              </div>
            )}
 
@@ -168,6 +188,11 @@ const Layout: React.FC = () => {
                 {item.label}
               </Link>
             ))}
+            <div className="pt-4 border-t border-dark-700">
+               <button onClick={handleOpenSelectKey} className="w-full flex items-center gap-3 px-6 py-4 rounded-xl text-lg font-medium bg-purple-500 text-white">
+                  <Sparkles size={20} /> Pro Mode (Select Key)
+               </button>
+            </div>
           </nav>
         </div>
       )}

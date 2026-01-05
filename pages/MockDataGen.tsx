@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Database, Download, Play, RefreshCw, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Database, Download, Play, RefreshCw, AlertCircle, ShieldCheck } from 'lucide-react';
 import OutputDisplay from '../components/OutputDisplay';
 import Tooltip from '../components/Tooltip';
 import { generateMockData } from '../services/geminiService';
@@ -13,6 +13,17 @@ const MockDataGen: React.FC = () => {
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isApiValidated, setIsApiValidated] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const key = (process?.env?.API_KEY) || ((window as any).API_KEY) || (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY);
+      setIsApiValidated(!!key);
+    };
+    check();
+    const inv = setInterval(check, 2000);
+    return () => clearInterval(inv);
+  }, []);
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -42,7 +53,6 @@ const MockDataGen: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-2 gap-8 h-full">
-      {/* Control Panel */}
       <div className="space-y-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
@@ -50,7 +60,7 @@ const MockDataGen: React.FC = () => {
             Mock Data Generator
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Instantly create realistic datasets for testing. Just describe what you need.
+            Instantly create realistic datasets for testing.
           </p>
         </div>
 
@@ -59,13 +69,13 @@ const MockDataGen: React.FC = () => {
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
               Data Topic & Structure
-              <Tooltip text="Describe the entities, fields, and specific formatting you need. Example: 'Users with uuid, realistic email, and a funny bio'." />
+              <Tooltip text="Describe what you need. Example: 'Users with email and name'." />
             </label>
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="E.g. Users with email, funny bio, and subscription status..."
-              className="w-full h-32 bg-dark-900 border border-dark-600 rounded-xl p-4 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none transition-all placeholder:text-slate-400 dark:placeholder:text-dark-600"
+              placeholder="E.g. User with email, name..."
+              className="w-full h-32 bg-dark-900 border border-dark-600 rounded-xl p-4 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all"
             />
           </div>
 
@@ -76,32 +86,19 @@ const MockDataGen: React.FC = () => {
               </label>
               <div className="grid grid-cols-3 gap-2 bg-dark-900 p-1 rounded-lg border border-dark-600">
                 {['JSON', 'CSV', 'SQL'].map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFormat(f as any)}
-                    className={`text-sm py-1.5 rounded-md transition-all font-medium ${
-                      format === f ? 'bg-blue-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
+                  <button key={f} onClick={() => setFormat(f as any)} className={`text-sm py-1.5 rounded-md transition-all font-medium ${format === f ? 'bg-blue-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}>
                     {f}
                   </button>
                 ))}
               </div>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
                 Complexity
               </label>
               <div className="grid grid-cols-2 gap-2 bg-dark-900 p-1 rounded-lg border border-dark-600">
                 {['Simple', 'Complex'].map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setComplexity(c as any)}
-                    className={`text-sm py-1.5 rounded-md transition-all font-medium ${
-                      complexity === c ? 'bg-blue-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
+                  <button key={c} onClick={() => setComplexity(c as any)} className={`text-sm py-1.5 rounded-md transition-all font-medium ${complexity === c ? 'bg-blue-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}>
                     {c}
                   </button>
                 ))}
@@ -111,15 +108,21 @@ const MockDataGen: React.FC = () => {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Row Count: {count}</label>
-            <input
-              type="range"
-              min="1"
-              max="50"
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-              className="w-full h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-            />
+            <input type="range" min="1" max="50" value={count} onChange={(e) => setCount(Number(e.target.value))} className="w-full h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-blue-500" />
           </div>
+
+          {!isApiValidated && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-500 text-sm animate-pulse">
+                <AlertCircle className="shrink-0" size={18} />
+                <p>API_KEY not found. Please ensure VITE_API_KEY is set in Vercel.</p>
+            </div>
+          )}
+
+          {isApiValidated && !error && (
+            <div className="p-3 bg-green-500/5 border border-green-500/10 rounded-lg flex items-center gap-2 text-[10px] text-green-500 font-bold uppercase tracking-widest">
+               <ShieldCheck size={14} /> Connection Established
+            </div>
+          )}
 
           {error && (
             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-500 text-sm">
@@ -132,9 +135,7 @@ const MockDataGen: React.FC = () => {
             onClick={handleGenerate}
             disabled={loading || !topic}
             className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg ${
-              loading || !topic
-                ? 'bg-dark-700 text-slate-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-500/25'
+              loading || !topic ? 'bg-dark-700 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white'
             }`}
           >
             {loading ? <RefreshCw className="animate-spin" /> : <Play fill="currentColor" size={18} />}
@@ -147,10 +148,7 @@ const MockDataGen: React.FC = () => {
          <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300">Result Preview</h2>
             {result && (
-                <button 
-                    onClick={downloadFile}
-                    className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors"
-                >
+                <button onClick={downloadFile} className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500">
                     <Download size={16} /> Download File
                 </button>
             )}
