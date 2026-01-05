@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>AllNoop | The AI-Powered Productivity Suite for Modern Developers</title>
+    <meta name="title" content="AllNoop | The AI-Powered Productivity Suite for Modern Developers" />
+    <meta name="description" content="Automate the boring parts of development. AllNoop provides AI tools for Mock Data, Regex building, Code Simplification, Commit Messages, and OG Image generation. Boost your developer productivity today." />
+    <meta name="keywords" content="developer tools, ai productivity, mock data generator, regex builder, git commit message generator, code refactor, sql to nosql, og image generator, developer utility, allnoop" />
+    <meta name="author" content="AllNoop Team" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://allnoop.com/" />
+    <meta property="og:title" content="AllNoop | Automate Everything, Do Nothing" />
+    <meta property="og:description" content="The ultimate AI toolkit for developers. Generate datasets, regex patterns, and professional documentation in seconds." />
+    <meta property="og:image" content="https://allnoop.com/og-main.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://allnoop.com/" />
+    <meta property="twitter:title" content="AllNoop | The AI Productivity Suite for Developers" />
+    <meta property="twitter:description" content="Automate the 'All' so you can 'NoOp'. Professional AI tools for the modern developer workflow." />
+    <meta property="twitter:image" content="https://allnoop.com/og-main.png" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AllNoop",
+      "operatingSystem": "Web",
+      "applicationCategory": "DeveloperApplication",
+      "description": "A collection of AI-powered productivity tools for developers to automate repetitive tasks like mock data generation, regex creation, and code refactoring.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "ratingCount": "1024"
+      }
+    }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+      // Load theme early to prevent flickering
+      const savedTheme = localStorage.getItem('allnoop-theme');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              noop: {
+                50: '#f0fdfa',
+                100: '#ccfbf1',
+                200: '#99f6e4',
+                300: '#5eead4',
+                400: '#2dd4bf',
+                500: '#14b8a6',
+                600: '#0d9488',
+                700: '#0f766e',
+                800: '#115e59',
+                900: '#134e4a',
+                950: '#042f2e',
+              },
+              dark: {
+                950: 'var(--color-dark-950)',
+                900: 'var(--color-dark-900)',
+                800: 'var(--color-dark-800)',
+                700: 'var(--color-dark-700)',
+                600: 'var(--color-dark-600)'
+              }
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'pulse-soft': 'pulseSoft 3s infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              pulseSoft: {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0.8' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      :root {
+        /* Light Mode Defaults */
+        --color-dark-950: #ffffff;
+        --color-dark-900: #f8fafc;
+        --color-dark-800: #f1f5f9;
+        --color-dark-700: #e2e8f0;
+        --color-dark-600: #94a3b8;
+        --text-base: #0f172a;
+        --text-muted: #64748b;
+      }
+
+      .dark {
+        /* Dark Mode */
+        --color-dark-950: #020617;
+        --color-dark-900: #0f172a;
+        --color-dark-800: #1e293b;
+        --color-dark-700: #334155;
+        --color-dark-600: #475569;
+        --text-base: #f8fafc;
+        --text-muted: #94a3b8;
+      }
+
+      body {
+        background-color: var(--color-dark-900);
+        color: var(--text-base);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--color-dark-800); 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--color-dark-700); 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-dark-600); 
+      }
+      .glass {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

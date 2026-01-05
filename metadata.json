@@ -1,0 +1,8 @@
+{
+  "name": "AllNoop",
+  "description": "The Developer's Zen Suite. AllNoop is an SEO-optimized collection of AI-powered productivity tools designed to automate repetitive coding tasks like Mock Data generation, Regex creation, Code Simplification, Git Commit messages, and SQL to NoSQL conversion. Boost your developer productivity instantly.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
