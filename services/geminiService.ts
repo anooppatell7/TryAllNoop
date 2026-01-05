@@ -2,8 +2,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MockDataRequest } from "../types";
 
+const getApiKey = () => {
+  if (typeof process !== 'undefined' && process.env.API_KEY) {
+    return process.env.API_KEY;
+  }
+  // Fallback for different environments
+  return (window as any).API_KEY || (window as any).VITE_API_KEY;
+};
+
 const getClient = () => {
-  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : (window as any).VITE_API_KEY;
+  const apiKey = getApiKey();
   if (!apiKey) return null;
   return new GoogleGenAI({ apiKey });
 };

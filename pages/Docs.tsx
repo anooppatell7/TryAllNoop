@@ -11,7 +11,6 @@ import {
   Clock, 
   FileJson, 
   FileText,
-  ChevronRight,
   Lightbulb,
   ShieldCheck,
   Zap,
@@ -184,8 +183,8 @@ const Docs: React.FC = () => {
                   <span className="w-6 h-6 rounded-full bg-noop-500 text-white flex items-center justify-center text-xs">2</span>
                   Add to Vercel
                 </h4>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  In your Vercel Dashboard, go to <b>Settings > Environment Variables</b>. Add a new variable with name <code className="bg-dark-900 px-2 py-0.5 rounded text-noop-400">API_KEY</code> and paste your key as the value.
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  In your Vercel Dashboard, go to <b>Settings &gt; Environment Variables</b>. Add a new variable with name <code className="bg-dark-900 px-2 py-0.5 rounded text-noop-400">API_KEY</code> and paste your key as the value.
                 </p>
 
                 <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 pt-4">
