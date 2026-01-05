@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -51,12 +51,8 @@ const Layout: React.FC = () => {
       <aside className="hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20">
         <header className="p-6 flex items-center gap-3 border-b border-dark-700">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-noop-500/20 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
-              <img 
-                src="https://raw.githubusercontent.com/ai-studio-images/logos/main/allnoop_bolt.png" 
-                alt="AllNoop Logo" 
-                className="w-full h-full object-cover"
-              />
+            <div className="w-10 h-10 rounded-xl shadow-lg shadow-noop-500/20 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600 text-white">
+              <Zap size={24} fill="currentColor" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">AllNoop</span>
           </Link>
@@ -96,16 +92,44 @@ const Layout: React.FC = () => {
       <header className="md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors">
          <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
-                <img src="https://raw.githubusercontent.com/ai-studio-images/logos/main/allnoop_bolt.png" alt="Logo" className="w-full h-full object-cover" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600 text-white">
+                <Zap size={18} fill="currentColor" />
               </div>
               <span className="font-bold text-slate-900 dark:text-white">AllNoop</span>
             </Link>
          </div>
-         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-500 dark:text-slate-300">
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-         </button>
+         <div className="flex items-center gap-4">
+            <button onClick={toggleTheme} className="text-slate-500">
+               {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-500 dark:text-slate-300">
+               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+         </div>
       </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 pt-16 bg-dark-900/95 backdrop-blur-sm animate-fade-in">
+          <nav className="p-4 space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-6 py-4 rounded-xl text-lg font-medium ${
+                  isActive(item.path)
+                    ? 'bg-noop-500 text-white'
+                    : 'text-slate-400'
+                }`}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto min-h-screen pt-20 md:pt-8">
