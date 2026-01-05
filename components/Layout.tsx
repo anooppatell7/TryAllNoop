@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap, ShieldCheck, ShieldAlert, Bug } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Sun, Moon, BookOpen, Zap, ShieldCheck, ShieldAlert, Bug, ExternalLink } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -10,14 +10,11 @@ const Layout: React.FC = () => {
   const [isApiConnected, setIsApiConnected] = useState<boolean | null>(null);
   const [showDebug, setShowDebug] = useState(false);
 
-  // Initialize theme and check API
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
-
-    // Check the global shimmed process.env.API_KEY
     const checkApi = () => {
-      setIsApiConnected(!!process.env.API_KEY);
+      // Check the shimmed process.env.API_KEY
+      const hasKey = !!process.env.API_KEY;
+      setIsApiConnected(hasKey);
     };
 
     checkApi();
@@ -58,7 +55,6 @@ const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-dark-900 text-slate-800 dark:text-slate-200 font-sans selection:bg-noop-500 selection:text-white transition-colors duration-300">
-      {/* Sidebar Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20">
         <header className="p-6 flex items-center gap-3 border-b border-dark-700">
           <Link to="/" className="flex items-center gap-3 group">
@@ -89,22 +85,34 @@ const Layout: React.FC = () => {
         </nav>
 
         <div className="p-4 space-y-2">
-           <div 
+           <button 
              onClick={() => setShowDebug(!showDebug)}
-             className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
-             isApiConnected ? 'text-green-500 bg-green-500/5 border-green-500/10' : 'text-red-500 bg-red-500/5 border-red-500/10'
+             className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
+             isApiConnected ? 'text-green-500 bg-green-500/5 border-green-500/10' : 'text-red-500 bg-red-500/5 border-red-500/10 animate-pulse'
            }`}>
               {isApiConnected ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-              {isApiConnected ? 'Connected' : 'Setup Required'}
+              {isApiConnected ? 'AI System Active' : 'Setup Required'}
               <Bug size={10} className="ml-auto opacity-50" />
-           </div>
+           </button>
            
            {showDebug && (
-             <div className="p-3 bg-dark-950 rounded-lg border border-dark-700 text-[9px] font-mono text-slate-500 space-y-1 animate-fade-in">
-                <p>Status: {isApiConnected ? 'Ready' : 'Missing Key'}</p>
-                <p>Resolution Step:</p>
-                <p className="text-slate-300">• Rename Vercel key to <b>VITE_API_KEY</b></p>
-                <p className="text-slate-300">• Redeploy your app</p>
+             <div className="p-4 bg-dark-950 rounded-xl border border-dark-700 text-[10px] font-mono text-slate-500 space-y-3 animate-fade-in shadow-2xl">
+                <div className="flex items-center justify-between border-b border-dark-800 pb-2">
+                   <span className="text-noop-500 font-bold">Vercel Config Guide</span>
+                   <button onClick={() => setShowDebug(false)}><X size={12} /></button>
+                </div>
+                {!isApiConnected ? (
+                  <div className="space-y-2">
+                    <p className="text-slate-300">1. Go to <span className="text-white">Settings &gt; Env Variables</span></p>
+                    <p className="text-slate-300">2. Add Key: <b className="text-noop-400">VITE_API_KEY</b></p>
+                    <p className="text-slate-300">3. <span className="text-white">Redeploy</span> the project.</p>
+                    <a href="https://vercel.com/docs/projects/environment-variables" target="_blank" className="flex items-center gap-1 text-blue-400 mt-2 hover:underline">
+                      Vercel Docs <ExternalLink size={10} />
+                    </a>
+                  </div>
+                ) : (
+                  <p className="text-green-600">Successfully connected to Gemini AI. Ready to automate.</p>
+                )}
              </div>
            )}
 
@@ -135,7 +143,6 @@ const Layout: React.FC = () => {
          </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 pt-16 bg-dark-900/95 backdrop-blur-sm animate-fade-in">
           <nav className="p-4 space-y-2">
@@ -158,7 +165,6 @@ const Layout: React.FC = () => {
         </div>
       )}
 
-      {/* Main Content */}
       <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto min-h-screen pt-20 md:pt-8">
         <article className="max-w-5xl mx-auto">
             <Outlet />
