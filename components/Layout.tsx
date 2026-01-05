@@ -1,14 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Github, Twitter, Sun, Moon, BookOpen } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Github, Twitter, Sun, Moon, BookOpen, AlertTriangle } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isApiKeyMissing, setIsApiKeyMissing] = useState(false);
 
-  // Initialize theme from HTML class (set by inline script in index.html)
+  // Check for API Key presence
+  useEffect(() => {
+    const key = typeof process !== 'undefined' ? process.env.API_KEY : (window as any).VITE_API_KEY;
+    if (!key) {
+      setIsApiKeyMissing(true);
+    }
+  }, []);
+
+  // Initialize theme
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
     setIsDarkMode(isDark);
@@ -48,8 +57,17 @@ const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-dark-900 text-slate-800 dark:text-slate-200 font-sans selection:bg-noop-500 selection:text-white transition-colors duration-300">
+      {/* API Warning Banner */}
+      {isApiKeyMissing && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-amber-950 px-4 py-2 text-center text-xs font-bold flex items-center justify-center gap-2 shadow-lg animate-pulse">
+          <AlertTriangle size={14} />
+          <span>Configuration Required: Please set your API_KEY in Vercel environment variables to enable AI features.</span>
+          <Link to="/docs#introduction" className="underline hover:opacity-80">Learn how</Link>
+        </div>
+      )}
+
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20 transition-colors">
+      <aside className={`hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20 transition-all ${isApiKeyMissing ? 'pt-10' : ''}`}>
         <header className="p-6 flex items-center gap-3 border-b border-dark-700">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-noop-500/20 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
@@ -57,11 +75,6 @@ const Layout: React.FC = () => {
                 src="https://raw.githubusercontent.com/ai-studio-images/logos/main/allnoop_bolt.png" 
                 alt="AllNoop Logo" 
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                   const target = e.target as HTMLImageElement;
-                   target.style.display = 'none';
-                   target.parentElement!.innerHTML = `<span class="text-white font-bold text-lg">⚡</span>`;
-                }}
               />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">AllNoop</span>
@@ -91,71 +104,30 @@ const Layout: React.FC = () => {
            <button 
              onClick={toggleTheme}
              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-dark-700 border border-dark-600 text-slate-600 dark:text-slate-400 hover:text-noop-500 transition-all group"
-             aria-label="Toggle Theme"
            >
              <span className="text-sm font-medium">{isDarkMode ? 'Dark Mode' : 'Light Mode'}</span>
-             {isDarkMode ? <Moon size={18} className="group-hover:rotate-12 transition-transform" /> : <Sun size={18} className="group-hover:rotate-45 transition-transform" />}
+             {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
            </button>
-
-           <footer className="pt-4 border-t border-dark-700">
-              <div className="flex items-center justify-around text-slate-400 dark:text-slate-500">
-                 <button className="hover:text-noop-500 transition-colors"><Github size={18} /></button>
-                 <button className="hover:text-noop-500 transition-colors"><Twitter size={18} /></button>
-                 <span className="text-[10px] font-mono uppercase tracking-tighter">v2.1-ZEN</span>
-              </div>
-           </footer>
         </div>
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors">
+      <header className={`md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors ${isApiKeyMissing ? 'mt-8' : ''}`}>
          <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
-                <img 
-                  src="https://raw.githubusercontent.com/ai-studio-images/logos/main/allnoop_bolt.png" 
-                  alt="AllNoop Logo" 
-                  className="w-full h-full object-cover"
-                />
+                <img src="https://raw.githubusercontent.com/ai-studio-images/logos/main/allnoop_bolt.png" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <span className="font-bold text-slate-900 dark:text-white">AllNoop</span>
             </Link>
          </div>
-         <div className="flex items-center gap-4">
-            <button onClick={toggleTheme} className="text-slate-500 dark:text-slate-400 p-1" aria-label="Toggle Theme">
-               {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-500 dark:text-slate-300" aria-label="Toggle Menu">
-               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-         </div>
+         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-500 dark:text-slate-300">
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+         </button>
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <nav className="fixed inset-0 z-20 bg-dark-900/95 pt-20 px-4 md:hidden animate-fade-in" aria-label="Mobile Navigation">
-            <div className="grid grid-cols-2 gap-4">
-            {navItems.map((item) => (
-                <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-colors ${
-                    isActive(item.path)
-                    ? 'bg-noop-500/10 text-noop-500 dark:text-noop-400 border-noop-500/30'
-                    : 'bg-dark-800 border-dark-700 text-slate-600 dark:text-slate-300'
-                }`}
-                >
-                {item.icon}
-                <span className="text-xs font-medium">{item.label}</span>
-                </Link>
-            ))}
-            </div>
-        </nav>
-      )}
-
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto min-h-screen">
+      <main className={`flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto min-h-screen ${isApiKeyMissing ? 'pt-24 md:pt-16' : 'pt-20 md:pt-8'}`}>
         <article className="max-w-5xl mx-auto">
             <Outlet />
         </article>

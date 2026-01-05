@@ -2,75 +2,51 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MockDataRequest } from "../types";
 
-// Initialize Gemini Client with safety checks for browser environments
 const getClient = () => {
-  // Check if process exists to avoid ReferenceError in raw browser environments
   const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : (window as any).VITE_API_KEY;
-  
-  if (!apiKey) {
-    console.error("AllNoop Error: Gemini API Key not found in environment.");
-    // We throw inside the actual calls so the UI can mount first
-    return null;
-  }
+  if (!apiKey) return null;
   return new GoogleGenAI({ apiKey });
 };
 
 const ensureClient = () => {
   const client = getClient();
-  if (!client) throw new Error("API Key is missing. Please set API_KEY in your environment variables.");
+  if (!client) {
+    throw new Error("Missing API Key. Please add 'API_KEY' to your environment variables in Vercel Settings > Environment Variables, then redeploy.");
+  }
   return client;
 };
 
-// Utility to strip markdown code blocks (```lang ... ```)
 const cleanMarkdown = (text: string): string => {
   if (!text) return "";
   const codeBlockRegex = /^```(?:\w+)?\s*([\s\S]*?)\s*```$/;
   const match = text.trim().match(codeBlockRegex);
-  if (match) {
-    return match[1].trim();
-  }
+  if (match) return match[1].trim();
   return text.trim();
 };
 
 export const generateMockData = async (req: MockDataRequest): Promise<string> => {
   const ai = ensureClient();
   const model = "gemini-3-flash-preview";
-
   let prompt = `Generate ${req.count} records of ${req.complexity.toLowerCase()} mock data about "${req.topic}".`;
   
   if (req.format === 'JSON') {
     prompt += ` Return ONLY a raw JSON array.`;
-    try {
-        const response = await ai.models.generateContent({
-            model,
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-            }
-        });
-        return response.text || "[]";
-    } catch (e) {
-        console.error("Gemini JSON Error", e);
-        throw e;
-    }
-  } else {
-    prompt += ` Return the data in ${req.format} format. Output ONLY the raw data. Do not include markdown code blocks.`;
     const response = await ai.models.generateContent({
         model,
         contents: prompt,
+        config: { responseMimeType: "application/json" }
     });
+    return response.text || "[]";
+  } else {
+    prompt += ` Return the data in ${req.format} format. Output ONLY the raw data.`;
+    const response = await ai.models.generateContent({ model, contents: prompt });
     return cleanMarkdown(response.text || "");
   }
 };
 
 export const generateRegex = async (description: string, testString: string): Promise<{ regex: string; explanation: string }> => {
   const ai = ensureClient();
-  const prompt = `
-    Create a Regular Expression for: "${description}".
-    Match test case: "${testString}".
-    Return JSON: { "regex": string, "explanation": string }
-  `;
-
+  const prompt = `Create a Regex for: "${description}". Test: "${testString}". Return JSON: { "regex", "explanation" }`;
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: prompt,
@@ -78,24 +54,17 @@ export const generateRegex = async (description: string, testString: string): Pr
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
-        properties: {
-            regex: { type: Type.STRING },
-            explanation: { type: Type.STRING }
-        }
+        properties: { regex: { type: Type.STRING }, explanation: { type: Type.STRING } }
       }
     }
   });
-
   return JSON.parse(response.text || "{}");
 };
 
 export const simplifyCode = async (code: string, language: string): Promise<string> => {
   const ai = ensureClient();
   const prompt = `Refactor this ${language} code for elegance and efficiency. Return ONLY code.\n\n${code}`;
-  const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
-    contents: prompt,
-  });
+  const response = await ai.models.generateContent({ model: "gemini-3-pro-preview", contents: prompt });
   return cleanMarkdown(response.text || "// No simplification possible.");
 };
 
@@ -117,10 +86,7 @@ export const generateCron = async (description: string): Promise<{ cron: string;
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
-        properties: {
-            cron: { type: Type.STRING },
-            explanation: { type: Type.STRING }
-        }
+        properties: { cron: { type: Type.STRING }, explanation: { type: Type.STRING } }
       }
     }
   });
