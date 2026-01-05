@@ -19,12 +19,14 @@ import {
   Cpu,
   Globe,
   Lock,
-  Github
+  Github,
+  Key
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const DOCS_SECTIONS = [
   { id: 'introduction', title: 'Introduction', icon: BookOpen },
+  { id: 'setup', title: 'Getting an API Key', icon: Key },
   { id: 'mock-data', title: 'Mock Data Gen', icon: Database },
   { id: 'regex', title: 'Regex Builder', icon: Terminal },
   { id: 'simplify', title: 'Code Simplifier', icon: Code },
@@ -152,6 +154,61 @@ const Docs: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        {/* Setup Section */}
+        <section id="setup" className="space-y-8 scroll-mt-24">
+          <header className="flex items-center gap-6">
+             <div className="w-16 h-16 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-500/10">
+                <Key size={32} />
+             </div>
+             <div>
+                <h2 className="text-4xl font-bold text-slate-900 dark:text-white">Getting an API Key</h2>
+                <p className="text-slate-500 dark:text-slate-400">Enable AI capabilities in 60 seconds.</p>
+             </div>
+          </header>
+          
+          <div className="bg-dark-800 rounded-3xl border border-dark-700 p-8 space-y-6">
+            <div className="grid md:grid-cols-2 gap-12">
+              <div className="space-y-4">
+                <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-noop-500 text-white flex items-center justify-center text-xs">1</span>
+                  Get your key
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Go to <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-noop-500 hover:underline font-bold inline-flex items-center gap-1">Google AI Studio <ArrowUpRight size={14}/></a> and click "Get API Key" on the left menu.
+                </p>
+                
+                <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 pt-4">
+                  <span className="w-6 h-6 rounded-full bg-noop-500 text-white flex items-center justify-center text-xs">2</span>
+                  Add to Vercel
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  In your Vercel Dashboard, go to <b>Settings > Environment Variables</b>. Add a new variable with name <code className="bg-dark-900 px-2 py-0.5 rounded text-noop-400">API_KEY</code> and paste your key as the value.
+                </p>
+
+                <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 pt-4">
+                  <span className="w-6 h-6 rounded-full bg-noop-500 text-white flex items-center justify-center text-xs">3</span>
+                  Redeploy
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Vercel requires a fresh deployment to "see" new variables. Go to the "Deployments" tab and click "Redeploy" on your latest version.
+                </p>
+              </div>
+              
+              <div className="bg-dark-950 rounded-2xl p-6 border border-dark-700 flex flex-col justify-center">
+                <div className="text-center space-y-4">
+                  <div className="w-12 h-12 bg-noop-500/20 rounded-full flex items-center justify-center mx-auto text-noop-500">
+                    <ShieldCheck size={24} />
+                  </div>
+                  <h5 className="font-bold text-white">Why do I need a key?</h5>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    AllNoop uses Google's state-of-the-art Gemini models to process your requests. Using your own key ensures you get the full speed and limits of the Gemini API without sharing bandwidth with other users.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

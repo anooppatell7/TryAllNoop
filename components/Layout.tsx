@@ -62,7 +62,19 @@ const Layout: React.FC = () => {
         <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-amber-950 px-4 py-2 text-center text-xs font-bold flex items-center justify-center gap-2 shadow-lg animate-pulse">
           <AlertTriangle size={14} />
           <span>Configuration Required: Please set your API_KEY in Vercel environment variables to enable AI features.</span>
-          <Link to="/docs#introduction" className="underline hover:opacity-80">Learn how</Link>
+          <Link 
+            to="/docs" 
+            onClick={(e) => {
+              // Smooth scroll to setup section if already on docs page
+              if (location.pathname === '/docs') {
+                e.preventDefault();
+                document.getElementById('setup')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="underline hover:opacity-80"
+          >
+            Get API Key
+          </Link>
         </div>
       )}
 
