@@ -18,7 +18,8 @@ import {
   ArrowUpRight,
   Cpu,
   Globe,
-  Lock
+  Lock,
+  Github
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -27,6 +28,7 @@ const DOCS_SECTIONS = [
   { id: 'mock-data', title: 'Mock Data Gen', icon: Database },
   { id: 'regex', title: 'Regex Builder', icon: Terminal },
   { id: 'simplify', title: 'Code Simplifier', icon: Code },
+  { id: 'github-push', title: 'GitHub Pusher', icon: Github },
   { id: 'commit-msg', title: 'Commit Msg Pro', icon: GitCommit },
   { id: 'sql-nosql', title: 'SQL to NoSQL', icon: DatabaseZap },
   { id: 'og-image', title: 'Dev OG Image', icon: Image },
@@ -42,6 +44,14 @@ const INTRO_FEATURES = [
 ];
 
 const OTHER_TOOLS_DOCS = [
+  { 
+    id: 'github-push', 
+    title: 'GitHub Pusher', 
+    icon: Github,
+    iconColor: "text-slate-900 dark:text-white",
+    how: "Enter your repository URL. Copy the generated CLI commands and run them in your project's root terminal.",
+    pro: "Perfect for quickly bootstrapping local projects to the cloud without looking up git syntax."
+  },
   { 
     id: 'commit-msg', 
     title: 'Commit Msg Pro', 
@@ -65,14 +75,6 @@ const OTHER_TOOLS_DOCS = [
     iconColor: "text-pink-500",
     how: "Enter your project title and tech stack. The AI will render a 16:9 developer-themed image with neon accents and high contrast.",
     pro: "Ideal for GitHub social previews to make your repositories stand out in the feed."
-  },
-  { 
-    id: 'cron', 
-    title: 'Cron Traveler', 
-    icon: Clock,
-    iconColor: "text-amber-500",
-    how: "Describe your schedule in natural English. Supports complex recurring events like 'last Friday of every 3 months'.",
-    pro: "We provide the 5-field crontab format used by Linux, macOS, and AWS Lambda."
   }
 ];
 

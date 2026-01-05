@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Code, Database, Terminal, Zap, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Github, Twitter, Sun, Moon, BookOpen } from 'lucide-react';
+import { Activity, Code, Database, Terminal, Menu, X, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Github, Twitter, Sun, Moon, BookOpen } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -35,6 +35,7 @@ const Layout: React.FC = () => {
     { label: 'Commit Message', path: '/commit-msg', icon: <GitCommit size={20} /> },
     { label: 'SQL to NoSQL', path: '/sql-nosql', icon: <DatabaseZap size={20} /> },
     { label: 'OG Image Gen', path: '/og-image', icon: <Image size={20} /> },
+    { label: 'GitHub Pusher', path: '/github-push', icon: <Github size={20} /> },
     { label: 'Cron Traveler', path: '/cron', icon: <Clock size={20} /> },
     { label: 'JSON Type-Caster', path: '/json-types', icon: <FileJson size={20} /> },
     { label: 'Readme Architect', path: '/readme', icon: <FileText size={20} /> },
@@ -50,9 +51,18 @@ const Layout: React.FC = () => {
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-dark-800 border-r border-dark-700 fixed h-full z-20 transition-colors">
         <header className="p-6 flex items-center gap-3 border-b border-dark-700">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-noop-400 to-noop-600 flex items-center justify-center text-white font-bold shadow-lg shadow-noop-500/20">
-              <Zap size={20} fill="currentColor" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-noop-500/20 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
+              <img 
+                src="https://raw.githubusercontent.com/ai-studio-images/logos/main/allnoop_bolt.png" 
+                alt="AllNoop Logo" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                   const target = e.target as HTMLImageElement;
+                   target.style.display = 'none';
+                   target.parentElement!.innerHTML = `<span class="text-white font-bold text-lg">⚡</span>`;
+                }}
+              />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">AllNoop</span>
           </Link>
@@ -100,10 +110,16 @@ const Layout: React.FC = () => {
       {/* Mobile Header */}
       <header className="md:hidden fixed w-full bg-dark-800 border-b border-dark-700 z-30 px-4 py-3 flex items-center justify-between transition-colors">
          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-noop-400 to-noop-600 flex items-center justify-center text-white font-bold">
-                <Zap size={18} fill="currentColor" />
-            </div>
-            <span className="font-bold text-slate-900 dark:text-white">AllNoop</span>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-br from-noop-400 to-noop-600">
+                <img 
+                  src="https://raw.githubusercontent.com/ai-studio-images/logos/main/allnoop_bolt.png" 
+                  alt="AllNoop Logo" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="font-bold text-slate-900 dark:text-white">AllNoop</span>
+            </Link>
          </div>
          <div className="flex items-center gap-4">
             <button onClick={toggleTheme} className="text-slate-500 dark:text-slate-400 p-1" aria-label="Toggle Theme">

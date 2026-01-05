@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Database, Terminal, Code, ArrowRight, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image } from 'lucide-react';
+import { Database, Terminal, Code, ArrowRight, Clock, FileJson, FileText, GitCommit, DatabaseZap, Image, Github } from 'lucide-react';
 
 const DASHBOARD_TOOLS = [
   {
@@ -31,6 +31,13 @@ const DASHBOARD_TOOLS = [
     path: "/sql-nosql",
     icon: DatabaseZap,
     color: "orange"
+  },
+  {
+    title: "GitHub Pusher",
+    desc: "Initialize and push your projects to GitHub with generated CLI commands. Easy repository setup.",
+    path: "/github-push",
+    icon: Github,
+    color: "dark"
   },
   {
     title: "Dev OG Image",
@@ -79,6 +86,7 @@ const COLOR_VARIANTS: Record<string, string> = {
   amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-amber-500/10",
   indigo: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-indigo-500/10",
   green: "bg-green-500/10 text-green-600 dark:text-green-400 shadow-green-500/10",
+  dark: "bg-slate-500/10 text-slate-600 dark:text-slate-400 shadow-slate-500/10",
 };
 
 const TEXT_VARIANTS: Record<string, string> = {
@@ -91,6 +99,7 @@ const TEXT_VARIANTS: Record<string, string> = {
   amber: "text-amber-600 dark:text-amber-400",
   indigo: "text-indigo-600 dark:text-indigo-400",
   green: "text-green-600 dark:text-green-400",
+  dark: "text-slate-600 dark:text-slate-400",
 };
 
 const Dashboard: React.FC = () => {
